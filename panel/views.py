@@ -257,6 +257,10 @@ class ProjectCreateAPI(APIView):
 
     def post(self, request):
 
+        employee_obj, employee_bool = User.objects.get_or_create(username=request.data['employeeUsername'],
+                                                                    first_name = request.data['employeeName']
+                                                                        )
+        
         try:
              
             employee_obj, employee_bool = User.objects.get_or_create(username=request.data['employeeUsername'],
