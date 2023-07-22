@@ -262,13 +262,13 @@ class ProjectCreateAPI(APIView):
             employee_obj, employee_bool = User.objects.get_or_create(username=request.data['employeeUsername'],
                                                                     first_name = request.data['employeeName']
                                                                         )
-            if not request.data['employeeSms']:
+            if not request.data['employeeActiveSms']:
                 employee_obj.groups.add(4)
         
             employer_obj, employer_bool = User.objects.get_or_create(username=request.data['employerUsername'],
                                                                     first_name = request.data['employerName']
                                                                         )
-            if not request.data['employerSms']:
+            if not request.data['employerActiveSms']:
                 employer_obj.groups.add(4)
 
             date = datetime.fromtimestamp(request.data['checkDate']/ 1000)
