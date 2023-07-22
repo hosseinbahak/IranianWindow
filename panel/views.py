@@ -386,6 +386,7 @@ class ProjectUpdateAPI(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
+            print(request.data)
             project = Project.objects.get(id=request.data['id'])
             second_to_datetime = datetime.fromtimestamp(request.data['checkDate']/1000)
 
