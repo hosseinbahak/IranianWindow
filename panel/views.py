@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_protect
 from datetime import datetime
 from rest_framework.generics import ListAPIView
-
+from django.utils import timezone
 
 
 
@@ -196,43 +196,50 @@ class Statistics(generics.GenericAPIView):
 
 
 
+
 class TodayProjectListAPI(generics.ListAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
+        
         try:
-            project = Project.objects.filter(check_date__date=datetime.today().date())
-            
 
             data = []
 
-            for i in project:
-                    data.append(
-                        {
-                        'number': i.employer.username, # shomare employer
-                        'id': i.id,
-                        'name': i.employer.first_name,
-                        'checked' : ''
-                    })
-                
-            print(data)
+            # Get today's date
+            today = timezone.now().date()
+
+            # Get projects with check_date matching today's date (ignoring the time component)
+            projects = Project.objects.filter(check_date__date=today)
             
+           
+            for project in projects:
+                # Extract the date part from the DateTimeField
+                check_date_date = project.check_date.date()
+
+                # Compare the extracted date with today's date
+                if check_date_date == today:
+
+                    data.append({
+                            'number': project.employer.username,  # shomare employer
+                            'id': project.id,
+                            'name': project.employer.first_name,
+                            'checked': project.check_date.timestamp()
+                    })
+
+
             return Response(response_func(
                 True,
-                "",
+                "good",
                 data
-            ), status=status.HTTP_200_OK
-            )
-        
+            ), status=status.HTTP_200_OK)
+
         except Exception as e:
             return Response(response_func(
-                True,
-                "",
+                False,
+                "failed",
                 {}
-            ), status=status.HTTP_200_OK
-            )
-    
-
+            ), status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -257,10 +264,7 @@ class ProjectCreateAPI(APIView):
 
     def post(self, request):
 
-        employee_obj, employee_bool = User.objects.get_or_create(username=request.data['employeeUsername'],
-                                                                    first_name = request.data['employeeName']
-                                                                        )
-        
+  
         try:
              
             employee_obj, employee_bool = User.objects.get_or_create(username=request.data['employeeUsername'],
@@ -335,7 +339,6 @@ class ProjectRetrieveAPI(generics.RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
 
 
-# 128370126310
 
 
 
@@ -358,7 +361,6 @@ class ProjectUpdateAPI(APIView):
                 'employeeActiveSms': '',
                 'employeeName': project.employee.first_name,
                 'employeeUsername': project.employee.username,
-
                 'employerActiveSms': '',
                 'employerName': project.employer.first_name,
                 'employerUsername': project.employer.username,
