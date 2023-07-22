@@ -346,37 +346,43 @@ class ProjectUpdateAPI(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        project = Project.objects.get(id=request.data['projectId'])
+        try:
+            project = Project.objects.get(id = request.query_params.get('projectId'))
 
 
-        return Response(response_func(
-            True,
-            "",
-            {
-                'address': project.address,
-                'advice' : project.advice,
-                'checkDate': int(project.check_date.timestamp()),
-                'checkout': project.checkout,
-                'connection': project.connection,
-                'employeeActiveSms': '',
-                'employeeName': project.employee.first_name,
-                'employeeUsername': project.employee.username,
-                'employerActiveSms': '',
-                'employerName': project.employer.first_name,
-                'employerUsername': project.employer.username,
-                'floors': project.floor,
-                'howMeet': project.how_meet,
-                'inPerson': project.in_person,
-                'level': project.level,
-                'partner': project.partner,
-                'region': project.region,
-                'state': project.state,
-                'visit': project.visit,
+            return Response(response_func(
+                True,
+                "",
+                {
+                    'address': project.address,
+                    'advice' : project.advice,
+                    'checkDate': int(project.check_date.timestamp()),
+                    'checkout': project.checkout,
+                    'connection': project.connection,
+                    'employeeActiveSms': '',
+                    'employeeName': project.employee.first_name,
+                    'employeeUsername': project.employee.username,
+                    'employerActiveSms': '',
+                    'employerName': project.employer.first_name,
+                    'employerUsername': project.employer.username,
+                    'floors': project.floor,
+                    'howMeet': project.how_meet,
+                    'inPerson': project.in_person,
+                    'level': project.level,
+                    'partner': project.partner,
+                    'region': project.region,
+                    'state': project.state,
+                    'visit': project.visit,
 
-            }
-        ), status=status.HTTP_200_OK
-        )
-
+                }
+            ), status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                    response_func(True, "پروژه‌ای وجود ندارد", {'error': str(e)}), 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+    
 
     def post(self, request, *args, **kwargs):
         try:
