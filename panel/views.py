@@ -278,7 +278,7 @@ class ProjectCreateAPI(APIView):
             date = datetime.fromtimestamp(request.data['checkDate']/ 1000)
 
 
-            project = Project.objects.get_or_create(
+            project_obj, project_bool  = Project.objects.get_or_create(
                 employee = employee_obj,
                 employer = employer_obj,
                 connection = request.data['connection'],
@@ -296,10 +296,10 @@ class ProjectCreateAPI(APIView):
                 advice = request.data['advice'],
                 )
 
-
+            
 
             return Response(
-                    response_func(True, "درخواست موفق", {'projectId': str(project)}),  
+                    response_func(True, "درخواست موفق", {'projectId': str(project_obj)}),  
                     status=status.HTTP_200_OK
                 )
         except Exception as e:
