@@ -252,108 +252,57 @@ class NotTrackedProjectListAPI(generics.ListAPIView):
 class ProjectCreateAPI(APIView):
     # queryset = Project.objects.all()
     # serializer_class = ProjectSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
 
     def post(self, request):
-        # serializer = self.serializer_class(data=request.data)
-        # print(request.data)
 
-        # serializer.is_valid(raise_exception=True)
+        try:
+             
+            employee_obj, employee_bool = User.objects.get_or_create(username=request.data['employeeUsername'],
+                                                                    first_name = request.data['employeeName']
+                                                                        )
+            if not request.data['employeeSms']:
+                employee_obj.groups.add(4)
+        
+            employer_obj, employer_bool = User.objects.get_or_create(username=request.data['employerUsername'],
+                                                                    first_name = request.data['employerName']
+                                                                        )
+            if not request.data['employerSms']:
+                employer_obj.groups.add(4)
 
-
-        # employee_username = serializer.validated_data.get('employeeUsername')
-        # employer_username = serializer.validated_data.get('employerUsername')
-
-        # employee_name = serializer.validated_data.get('employeeName')
-        # employer_name = serializer.validated_data.get('employerName')
-
-        # employee_sms = serializer.validated_data.get('employeeSms', False)
-        # employer_sms = serializer.validated_data.get('employerSms', False)
-        # print(employee_sms)
-
-
-        # # try:
-        # employee_obj, employee_bool = User.objects.get_or_create(username=employee_username,
-        #                                                          first_name = employee_name
-        #                                                             )
-        # if not employee_bool:
-        #     employee_obj.groups.add(4)
-    
-        # employer_obj, employer_bool = User.objects.get_or_create(username=employer_username,
-        #                                                          first_name = employer_name
-        #                                                             )
-        # if not employer_bool:
-        #     employer_obj.groups.add(4)
-
-        #     date = datetime.fromtimestamp(serializer.validated_data.get('checkDate'))
-
-        # # except Exception as e:
-        # #     print(str(e))
-
-        # try:
-            # project = Project.objects.get_or_create(
-            #     employee = employee_obj,
-            #     employer = employer_obj,
-            #     connection = serializer.validated_data.get('connection'),
-            #     check_date = serializer.validated_data.get('checkDate'),
-            #     how_meet = serializer.validated_data.get('howMeet'),
-            #     state = serializer.validated_data.get('state'),
-            #     level = serializer.validated_data.get('level'),
-            #     address = serializer.validated_data.get('address'),
-            #     floor = serializer.validated_data.get('floors'),
-            #     region = serializer.validated_data.get('region'),
-            #     partner = serializer.validated_data.get('partner'),
-            #     visit = serializer.validated_data.get('visit'),
-            #     in_person = serializer.validated_data.get('inPerson'),
-            #     checkout = serializer.validated_data.get('checkout'),
-            #     advice = serializer.validated_data.get('advice'),
-            # )
+            date = datetime.fromtimestamp(request.data['checkDate']/ 1000)
 
 
-        employee_obj, employee_bool = User.objects.get_or_create(username=request.data['employeeUsername'],
-                                                                 first_name = request.data['employeeName']
-                                                                    )
-        if not employee_bool:
-            employee_obj.groups.add(4)
-    
-        employer_obj, employer_bool = User.objects.get_or_create(username=request.data['employerUsername'],
-                                                                 first_name = request.data['employerName']
-                                                                    )
-        if not employer_bool:
-            employer_obj.groups.add(4)
-
-        date = datetime.fromtimestamp(request.data['checkDate']/ 1000)
-
-
-        project = Project.objects.get_or_create(
-            employee = employee_obj,
-            employer = employer_obj,
-            connection = request.data['connection'],
-            check_date = date,
-            how_meet = request.data['howMeet'],
-            state = request.data['state'],
-            level = request.data['level'],
-            address = request.data['address'],
-            floor = request.data['floors'],
-            region = request.data['region'],
-            partner = request.data['partner'],
-            visit = request.data['visit'],
-            in_person = request.data['inPerson'],
-            checkout = request.data['checkout'],
-            advice = request.data['advice'],
-            )
+            project = Project.objects.get_or_create(
+                employee = employee_obj,
+                employer = employer_obj,
+                connection = request.data['connection'],
+                check_date = date,
+                how_meet = request.data['howMeet'],
+                state = request.data['state'],
+                level = request.data['level'],
+                address = request.data['address'],
+                floor = request.data['floors'],
+                region = request.data['region'],
+                partner = request.data['partner'],
+                visit = request.data['visit'],
+                in_person = request.data['inPerson'],
+                checkout = request.data['checkout'],
+                advice = request.data['advice'],
+                )
 
 
-        return Response(
-                response_func(True, "درخواست موفق", {'projectId': ""}),  
-                status=status.HTTP_200_OK
-            )
-        # except Exception as e:
-        #     return Response(
-        #             response_func(True, "درخواست ناموفق", {'error': str(e)}),  
-        #             status=status.HTTP_400_BAD_REQUEST
-        #         )
+
+            return Response(
+                    response_func(True, "درخواست موفق", {'projectId': str(project)}),  
+                    status=status.HTTP_200_OK
+                )
+        except Exception as e:
+            return Response(
+                    response_func(True, "درخواست ناموفق", {'error': str(e)}),  
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
 # {'state': 'ongoing', 
 # 'checkout': True, 
