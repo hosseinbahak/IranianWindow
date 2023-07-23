@@ -456,23 +456,77 @@ class ProjectSearch(APIView):
     serializer_class = ProjectSearchSerializer
     permission_classes = (IsAuthenticated,)
 
-
     def get(self, request):
         data = []
         project_type = request.GET.get('type')
         search_text = request.GET.get('text')
-        if project_type == 'user':
-            projects = Project.objects.filter(
-                Q(employee__username=search_text) | Q(employer__username=search_text)
-                                            )
-        elif project_type == 'name':
-            projects = Project.objects.filter(
-                Q(employee__first_name=search_text) | Q(employer__first_name=search_text)
-                                            )
-        else:
-            projects = Project.objects.none()
-        
-        serialized_projects = self.serializer_class(projects, many=True)
-        
-        return Response({'projects': serialized_projects.data})
 
+        if project_type == 'phone':
+    
+            try:
+                data = []
+
+                # Get today's date
+                today = timezone.now().date()
+
+                # Get projects with check_date matching today's date (ignoring the time component)
+                projects = Project.objects.filter(
+                    Q(employee__username=search_text) | Q(employer__username=search_text)
+                                            )
+                for project in projects:
+                    data.append({
+                            'number': project.employer.username,  # shomare employer
+                            'id': project.id,
+                            'name': project.employer.first_name,
+                            'checked': project.checking
+                    })
+
+
+                return Response(response_func(
+                    True,
+                    "good",
+                    data
+                ), status=status.HTTP_200_OK)
+
+            except Exception as e:
+                return Response(response_func(
+                    False,
+                    "failed",
+                    []
+                ), status=status.HTTP_400_BAD_REQUEST)
+
+
+        else:
+            try:
+
+                data = []
+
+                # Get today's date
+                today = timezone.now().date()
+
+                # Get projects with check_date matching today's date (ignoring the time component)
+                projects = Project.objects.filter(
+                    Q(employee__first_name=search_text) | Q(employer__first_name=search_text)
+                                            )
+                                            
+                for project in projects:
+                    data.append({
+                            'number': project.employer.username,  # shomare employer
+                            'id': project.id,
+                            'name': project.employer.first_name,
+                            'checked': project.checking
+                    })
+
+
+                return Response(response_func(
+                    True,
+                    "good",
+                    data
+                ), status=status.HTTP_200_OK)
+
+            except Exception as e:
+                return Response(response_func(
+                    False,
+                    "failed",
+                    []
+                ), status=status.HTTP_400_BAD_REQUEST)
