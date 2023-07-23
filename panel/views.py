@@ -51,6 +51,18 @@ class RemotePost:
             'Smsclass': sms
         }
         response = requests.post(url, data=payload)
+        
+        # import random
+        # from restapi import restfulapi 
+        # phonenumber = "9830008632000111"
+        # groupId = random.randint(0, 99999999)
+        # ws = restfulapi("*****","*****")
+        # ws.SendMessage(PhoneNumber=phonenumber,
+        # Message="سلام به محمد رستمی از پایتون",
+        # Mobiles=['989398219817'],
+        # UserGroupID=str(groupId),
+        # SendDateInTimeStamp=1558298601)
+
 
         if response.status_code == 200:
             # SMS sent successfully
@@ -401,13 +413,19 @@ class ProjectUpdateAPI(APIView):
     
 
     def post(self, request, *args, **kwargs):
+        
         try:
-            print(request.data)
+            
             project = Project.objects.get(id=request.data['id'])
+
+            print(project)
+            print(request.data['data'])
+
+
             second_to_datetime = datetime.fromtimestamp(request.data['checkDate']/1000)
 
-            project.check_date = second_to_datetime
-            project.save()
+            # project.check_date = second_to_datetime
+            # project.save()
 
             return Response(
                     response_func(
@@ -434,21 +452,19 @@ class ProjectSearch(APIView):
 
 
     def get(self, request):
+        data = []
         project_type = request.GET.get('type')
         search_text = request.GET.get('text')
         if project_type == 'user':
-            projects = Project.objects.filter(Q(employee__username=search_text) | Q(employer__username=search_text))
+            projects = Project.objects.filter(
+                Q(employee__username=search_text) | Q(employer__username=search_text)|
+                Q(employee__first_name=search_text) | Q(employer__first_name=search_text)
+                                            )
         elif project_type == 'name':
-            if len(search_text.split(' ')) == 1:
-                projects = Project.objects.filter(
-                    Q(employee__first_name__icontains=search_text) | Q(employee__last_name__icontains=search_text) |
-                    Q(employer__first_name__icontains=search_text) | Q(employer__last_name__icontains=search_text)
-                )
-            else:
-                projects = Project.objects.filter(
-                    Q(employee__first_name__icontains=search_text[0]) | Q(employee__last_name__icontains=search_text[1]) |
-                    Q(employer__first_name__icontains=search_text[0]) | Q(employer__last_name__icontains=search_text[1])
-                )
+            projects = Project.objects.filter(
+                Q(employee__username=search_text) | Q(employer__username=search_text)|
+                Q(employee__first_name=search_text) | Q(employer__first_name=search_text)
+                                            )
         else:
             projects = Project.objects.none()
         
