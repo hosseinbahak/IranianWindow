@@ -413,15 +413,12 @@ class ProjectUpdateAPI(APIView):
     
 
     def post(self, request, *args, **kwargs):
-        
         try:
-            
-            project = Project.objects.filter(id=request.data['projectId'])
+            project = Project.objects.get(id=request.data['projectId'])
 
             project.address = request.data['address']
             project.advice = request.data['advice']
-            project.check_date = request.data['checkDate']
-            project.checkout = datetime.fromtimestamp(request.data['checkDate']/ 1000)
+            project.check_date = datetime.fromtimestamp(request.data['checkDate'] / 1000)
             project.connection = request.data['connection']
             project.employee_sms = request.data['employeeActiveSms']
             project.employee.first_name = request.data['employeeName']
@@ -438,25 +435,20 @@ class ProjectUpdateAPI(APIView):
             project.state = request.data['state']
             project.visit = request.data['visit']
 
-
             project.save()
 
             return Response(
-                    response_func(
-                        True, 
-                        "ویرایش با موفقیت انجام شد", 
-                        {}
-                    ), status=status.HTTP_200_OK)
-        
+                response_func(
+                    True,
+                    "ویرایش با موفقیت انجام شد",
+                    {}
+                ), status=status.HTTP_200_OK)
+
         except Exception as e:
             return Response(
-                    response_func(True, "ویرایش انجام نشد", {'error': str(e)}), 
-                    status=status.HTTP_404_NOT_FOUND
-                )
-    
-
-
-
+                response_func(False, "ویرایش انجام نشد", {'error': str(e)}),
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 
