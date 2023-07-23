@@ -463,12 +463,10 @@ class ProjectSearch(APIView):
         search_text = request.GET.get('text')
         if project_type == 'user':
             projects = Project.objects.filter(
-                Q(employee__username=search_text) | Q(employer__username=search_text)|
-                Q(employee__first_name=search_text) | Q(employer__first_name=search_text)
+                Q(employee__username=search_text) | Q(employer__username=search_text)
                                             )
         elif project_type == 'name':
             projects = Project.objects.filter(
-                Q(employee__username=search_text) | Q(employer__username=search_text)|
                 Q(employee__first_name=search_text) | Q(employer__first_name=search_text)
                                             )
         else:
