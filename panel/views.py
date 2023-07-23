@@ -387,10 +387,10 @@ class ProjectUpdateAPI(APIView):
                     'checkDate': int(project.check_date.timestamp()),
                     'checkout': project.checkout,
                     'connection': project.connection,
-                    'employeeActiveSms': '',
+                    'employeeActiveSms': project.employee_sms,
                     'employeeName': project.employee.first_name,
                     'employeeUsername': project.employee.username,
-                    'employerActiveSms': '',
+                    'employerActiveSms': project.employer,
                     'employerName': project.employer.first_name,
                     'employerUsername': project.employer.username,
                     'floors': project.floor,
@@ -416,16 +416,30 @@ class ProjectUpdateAPI(APIView):
         
         try:
             
-            project = Project.objects.get(id=request.data['id'])
+            project = Project.objects.filter(id=request.data['projectId'])
 
-            print(project)
-            print(request.data['data'])
+            project.address = request.data['address']
+            project.advice = request.data['advice']
+            project.check_date = request.data['checkDate']
+            project.checkout = datetime.fromtimestamp(request.data['checkDate']/ 1000)
+            project.connection = request.data['connection']
+            project.employee_sms = request.data['employeeActiveSms']
+            project.employee.first_name = request.data['employeeName']
+            project.employee.username = request.data['employeeUsername']
+            project.employer_sms = request.data['employerActiveSms']
+            project.employer.first_name = request.data['employerName']
+            project.employer.username = request.data['employerUsername']
+            project.floor = request.data['floors']
+            project.how_meet = request.data['howMeet']
+            project.in_person = request.data['inPerson']
+            project.level = request.data['level']
+            project.partner = request.data['partner']
+            project.region = request.data['region']
+            project.state = request.data['state']
+            project.visit = request.data['visit']
 
 
-            second_to_datetime = datetime.fromtimestamp(request.data['checkDate']/1000)
-
-            # project.check_date = second_to_datetime
-            # project.save()
+            project.save()
 
             return Response(
                     response_func(
