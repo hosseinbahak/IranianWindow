@@ -212,20 +212,13 @@ class TodayProjectListAPI(generics.ListAPIView):
             # Get projects with check_date matching today's date (ignoring the time component)
             projects = Project.objects.filter(check_date__date=today)
             
-           
             for project in projects:
-                # Extract the date part from the DateTimeField
-                check_date_date = project.check_date.date()
-
-                # Compare the extracted date with today's date
-                if check_date_date == today:
-
-                    data.append({
-                            'number': project.employer.username,  # shomare employer
-                            'id': project.id,
-                            'name': project.employer.first_name,
-                            'checked': project.check_date.timestamp()
-                    })
+                data.append({
+                        'number': project.employer.username,  # shomare employer
+                        'id': project.id,
+                        'name': project.employer.first_name,
+                        'checked': project.checking
+                })
 
 
             return Response(response_func(
@@ -238,21 +231,44 @@ class TodayProjectListAPI(generics.ListAPIView):
             return Response(response_func(
                 False,
                 "failed",
-                {}
+                []
             ), status=status.HTTP_400_BAD_REQUEST)
 
 
 
 class NotTrackedProjectListAPI(generics.ListAPIView):
-    serializer_class = ProjectsSerializer
     permission_classes = (IsAuthenticated,)
 
+    def get(self, request):
 
-    def get_queryset(self):
-        today = date.today()
-        queryset = Project.objects.filter(state=0, 
-                                          registered_date__lte=today)
-        return queryset
+        try:
+            data = []
+            # Get today's date
+            today = timezone.now().date()
+            
+            # Filter projects based on the date part of `check_date`
+            projects = Project.objects.filter(state=0, check_date__date__lte=today, checking=False)
+
+            for project in projects:
+                data.append({
+                    'number': project.employer.username,
+                    'id': project.id,
+                    'name': project.employer.first_name,
+                    'checked': project.checking,
+                })
+
+            return Response({
+                'success': True,
+                'message': 'Projects fetched successfully.',
+                'data': data
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': 'Failed to fetch projects.',
+                'data': []
+            }, status=status.HTTP_400_BAD_REQUEST)
     
 
 

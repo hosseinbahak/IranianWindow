@@ -28,11 +28,12 @@ class Project(models.Model):
     partner = models.BooleanField(default=False)
     visit = models.BooleanField(default=False)
     in_person = models.BooleanField(default=False)
-    checkout = models.BooleanField(default=False) 
+    checkout = models.BooleanField(default=False) #is factor checked or not
     advice = models.BooleanField(default=False)
     employee_sms = models.BooleanField(default=False)
     employer_sms = models.BooleanField(default=False)
-    
+    checking = models.BooleanField(default=False)  #is this checking today or not
+
     def __str__(self):
         return str(self.id)
     def __name__(self):
