@@ -471,7 +471,7 @@ class ProjectSearch(APIView):
 
                 # Get projects with check_date matching today's date (ignoring the time component)
                 projects = Project.objects.filter(
-                    Q(employee__username=search_text) | Q(employer__username=search_text)
+                    Q(employee__username__icontains=search_text) | Q(employer__username__icontains=search_text)
                                             )
                 for project in projects:
                     data.append({
@@ -506,7 +506,7 @@ class ProjectSearch(APIView):
 
                 # Get projects with check_date matching today's date (ignoring the time component)
                 projects = Project.objects.filter(
-                    Q(employee__first_name=search_text) | Q(employer__first_name=search_text)
+                    Q(employee__first_name__icontains=search_text) | Q(employer__first_name__icontains=search_text)
                                             )
                                             
                 for project in projects:
