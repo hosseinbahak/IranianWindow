@@ -231,7 +231,16 @@ class TodayProjectListAPI(generics.ListAPIView):
                         'name': project.employer.first_name,
                         'checked': project.checking
                 })
-
+            
+            projects = Project.objects.filter(first_date__date = today, checking = True)
+            
+            for project in projects:
+                data.append({
+                        'number': project.employer.username,  # shomare employer
+                        'id': project.id,
+                        'name': project.employer.first_name,
+                        'checked': project.checking
+                })
 
             return Response(response_func(
                 True,
@@ -418,6 +427,7 @@ class ProjectUpdateAPI(APIView):
 
             project.address = request.data['address']
             project.advice = request.data['advice']
+            project.first_date = project.check_date
             project.check_date = datetime.fromtimestamp(request.data['checkDate'] / 1000)
             project.connection = request.data['connection']
             project.employee_sms = request.data['employeeActiveSms']
