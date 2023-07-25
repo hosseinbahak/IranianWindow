@@ -4,9 +4,8 @@ from .serializers import *
 import requests
 from django.contrib.auth.models import Group, User
 from rest_framework import status
-from .models import Project
+from .models import *
 from rest_framework import generics
-from .models import Project
 from .serializers import ProjectSerializer
 from datetime import date
 from rest_framework import generics, serializers
@@ -180,15 +179,15 @@ class Sms(generics.GenericAPIView):
                 response_func(True, "ارسال پیام با مشکل مواجه شده است", {'error': str(e)}),  
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
 
-        
+
 class Statistics(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         try:
             state_counts = {
+                'all': Project.objects.all().count(),
                 'ongoing': Project.objects.filter(state=0).count(),
                 'canceled': Project.objects.filter(state=1).count(),
                 'deal': Project.objects.filter(state=2).count(),
@@ -213,34 +212,39 @@ class TodayProjectListAPI(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        
         try:
-
             data = []
 
             # Get today's date
             today = timezone.now().date()
 
+            historical_records_today = ProjectCheckDateHistory.objects.filter(timestamp__date = today)
+            projects_with_today_timestamp = [record.project for record in historical_records_today]
+
+            for project in projects_with_today_timestamp:
+                data.append({
+                        'number': project.employer.username,  # shomare employer
+                        'id': project.id,
+                        'name': project.employer.first_name,
+                        'checked': True
+                })
+            
+
             # Get projects with check_date matching today's date (ignoring the time component)
             projects = Project.objects.filter(check_date__date=today)
             
             for project in projects:
-                data.append({
-                        'number': project.employer.username,  # shomare employer
-                        'id': project.id,
-                        'name': project.employer.first_name,
-                        'checked': project.checking
-                })
+                if project not in projects_with_today_timestamp:
+                    project.checking = False
+                    project.save
+                    data.append({
+                            'number': project.employer.username,  # shomare employer
+                            'id': project.id,
+                            'name': project.employer.first_name,
+                            'checked': False
+                    })
+
             
-            projects = Project.objects.filter(first_date__date = today, checking = True)
-            
-            for project in projects:
-                data.append({
-                        'number': project.employer.username,  # shomare employer
-                        'id': project.id,
-                        'name': project.employer.first_name,
-                        'checked': project.checking
-                })
 
             return Response(response_func(
                 True,
@@ -251,7 +255,7 @@ class TodayProjectListAPI(generics.ListAPIView):
         except Exception as e:
             return Response(response_func(
                 False,
-                "failed",
+                str(e),
                 []
             ), status=status.HTTP_400_BAD_REQUEST)
 
@@ -268,7 +272,7 @@ class NotTrackedProjectListAPI(generics.ListAPIView):
             today = timezone.now().date()
             
             # Filter projects based on the date part of `check_date`
-            projects = Project.objects.filter(state=0, check_date__date__lte=today, checking=False)
+            projects = Project.objects.filter(state=0, check_date__date__lte=today, checking = False)
 
             for project in projects:
                 data.append({
@@ -277,7 +281,20 @@ class NotTrackedProjectListAPI(generics.ListAPIView):
                     'name': project.employer.first_name,
                     'checked': project.checking,
                 })
+            
+            today = timezone.now().date()
 
+            historical_records_today = ProjectCheckDateHistory.objects.filter(timestamp__date = today)
+            projects_with_today_timestamp = [record.project for record in historical_records_today]
+
+            for project in projects_with_today_timestamp:
+                data.append({
+                        'number': project.employer.username,  # shomare employer
+                        'id': project.id,
+                        'name': project.employer.first_name,
+                        'checked': True
+                })
+            
             return Response({
                 'success': True,
                 'message': 'Projects fetched successfully.',
@@ -349,24 +366,6 @@ class ProjectCreateAPI(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-# {'state': 'ongoing', 
-# 'checkout': True, 
-#  'visit': False, 
-# 'advice': False, 
-#  'inPerson': True, 
-# 'partner': False, 
-#  'level': 'sinas', 
-# 'floors': 'adsdsaads', 
-# 'address': 'asddas', 
-#  'employeeName': 'dasdas', 
-# 'employeeUsername': 'dsasa', 
-# 'employerName': 'sdadsasad', 
-#  'employerUsername': 'dsaasdas', 
-# 'howMeet': 'dasddsa', 
-#  'region': 'dasddsas', 
-# 'connection': 'dasdasds', 
-# 'date': 1689935038554}
-
 
 class ProjectRetrieveAPI(generics.RetrieveAPIView):
     queryset = Project.objects.all()
@@ -427,7 +426,7 @@ class ProjectUpdateAPI(APIView):
 
             project.address = request.data['address']
             project.advice = request.data['advice']
-            project.first_date = project.check_date
+            # project.first_date = project.check_date
             project.check_date = datetime.fromtimestamp(request.data['checkDate'] / 1000)
             project.connection = request.data['connection']
             project.employee_sms = request.data['employeeActiveSms']
@@ -446,6 +445,11 @@ class ProjectUpdateAPI(APIView):
             project.visit = request.data['visit']
             project.checking = True
             project.save()
+
+            #historic record
+            ProjectCheckDateHistory.objects.create(
+                project = project
+            )
 
             return Response(
                 response_func(
