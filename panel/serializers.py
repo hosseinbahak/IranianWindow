@@ -9,10 +9,10 @@ class SmsSerializer(serializers.Serializer):
 
 
 class ProjectSerializer(serializers.Serializer):
-    employeeUsername = serializers.CharField(allow_null=False, required=True)
-    employerUsername = serializers.CharField(allow_null=False, required=True)
-    employeeName = serializers.CharField(allow_null=False, required=True)
-    employerName = serializers.CharField(allow_null=False, required=True)
+    employeeUsername = serializers.CharField(allow_null=False, required=True,source='employee.username')
+    employerUsername = serializers.CharField(allow_null=False, required=True,source='employee.username')
+    employeeName = serializers.CharField(allow_null=False, required=True,source='employer.first_name')
+    employerName = serializers.CharField(allow_null=False, required=True,source='employer.first_name')
     employeeSms = serializers.BooleanField(default=False)
     employerSms = serializers.BooleanField(default=False)
     connection = serializers.CharField(allow_null=True, required=False)
