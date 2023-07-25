@@ -38,3 +38,8 @@ class Project(models.Model):
         return str(self.id)
     def __name__(self):
         return str(self.id)
+
+
+class ProjectCheckDateHistory(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
