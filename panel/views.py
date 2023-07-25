@@ -444,7 +444,7 @@ class ProjectUpdateAPI(APIView):
             project.region = request.data['region']
             project.state = request.data['state']
             project.visit = request.data['visit']
-
+            project.checking = True
             project.save()
 
             return Response(
